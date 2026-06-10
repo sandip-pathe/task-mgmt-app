@@ -136,7 +136,7 @@ Errors use a consistent shape:
 4. Set the environment variables from `.env.example`.
 5. Keep `backend/railway.toml`; it runs migrations and starts Uvicorn.
 
-If deploying from the repository root instead, Railway may not auto-detect Python because the Python `pyproject.toml` lives in `backend/`. The repo-root `requirements.txt`, `runtime.txt`, and `railpack.json` make the root deployment detectable as Python, and the repo-root `railway.toml` can run from either the repository root or the `backend` root directory. The recommended Railway setup is still root directory `backend` with config path `/backend/railway.toml`.
+If deploying from the repository root instead, Railway may not auto-detect Python because the Python `pyproject.toml` lives in `backend/`. The repo-root `requirements.txt` and `runtime.txt` make the root deployment detectable as Python, and the repo-root `railway.toml` also forces the Python provider for Nixpacks. The recommended Railway setup is still root directory `backend` with config path `/backend/railway.toml`.
 
 ### Vercel Frontend
 
