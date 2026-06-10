@@ -19,7 +19,6 @@ import { useTheme } from "next-themes";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { api, ApiError } from "@/lib/api";
 import type {
@@ -34,6 +33,7 @@ import type {
   TaskStatus,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { authSchema, type AuthFormValues, taskSchema, type TaskFormValues } from "@/lib/validation";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -47,22 +47,6 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-
-const authSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-const taskSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(160),
-  description: z.string().max(5000).optional(),
-  status: z.enum(["todo", "in_progress", "completed"]),
-  priority: z.enum(["low", "medium", "high"]),
-  due_date: z.string().optional(),
-});
-
-type AuthFormValues = z.infer<typeof authSchema>;
-type TaskFormValues = z.infer<typeof taskSchema>;
 
 const statusLabels: Record<TaskStatus | "all", string> = {
   all: "All",
