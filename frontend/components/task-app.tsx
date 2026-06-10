@@ -128,9 +128,12 @@ export function TaskApp() {
   const logoutMutation = useMutation({
     mutationFn: api.logout,
     onSuccess: () => {
-      queryClient.clear();
+      queryClient.setQueryData(["me"], null);
+      queryClient.removeQueries({ queryKey: ["tasks"] });
+      queryClient.removeQueries({ queryKey: ["activity"] });
       toast.success("Signed out");
     },
+    onError: (error) => toast.error(errorMessage(error)),
   });
 
   if (meQuery.isLoading) {
@@ -295,7 +298,10 @@ function AuthScreen({
   });
 
   return (
-    <main className="grid min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50 lg:grid-cols-[1fr_460px]">
+    <main className="relative grid min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50 lg:grid-cols-[1fr_460px]">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
       <section className="flex min-h-[38vh] flex-col justify-between bg-emerald-700 px-6 py-8 text-white dark:bg-emerald-900 lg:min-h-screen lg:px-10">
         <div className="text-sm font-semibold">Rival Task Manager</div>
         <div className="max-w-2xl">
@@ -799,15 +805,18 @@ function FieldError({
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const label = isDark ? "Switch to light theme" : "Switch to dark theme";
   return (
     <Button
       type="button"
       variant="outline"
       size="icon"
-      title="Toggle theme"
+      aria-label={label}
+      title={label}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? <Sun /> : <Moon />}
+      <span className="sr-only">{label}</span>
     </Button>
   );
 }

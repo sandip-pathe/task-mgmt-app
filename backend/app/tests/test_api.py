@@ -23,7 +23,10 @@ def test_signup_login_and_me_roundtrip(client: TestClient) -> None:
     assert signup_response.json()["user"]["email"] == "ada@example.com"
     assert "access_token" in signup_response.cookies
 
-    client.post("/auth/logout")
+    logout_response = client.post("/auth/logout")
+    assert logout_response.status_code == 204
+    assert client.get("/auth/me").status_code == 401
+
     login_response = client.post(
         "/auth/login",
         json={"email": "ada@example.com", "password": "password123"},

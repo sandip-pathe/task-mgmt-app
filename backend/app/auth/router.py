@@ -53,7 +53,7 @@ def login(payload: AuthRequest, response: Response, db: Session = Depends(get_db
 
 
 @router.post("/logout", status_code=204)
-def logout(response: Response) -> Response:
+def logout(response: Response) -> None:
     settings = get_settings()
     response.delete_cookie(
         key=COOKIE_NAME,
@@ -62,7 +62,6 @@ def logout(response: Response) -> Response:
         samesite=settings.cookie_samesite,
         path="/",
     )
-    return response
 
 
 @router.get("/me", response_model=AuthResponse)
