@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     cors_origins: str = Field(
         default="http://localhost:3000,https://task-mgmt-app.vercel.app"
     )
-    cookie_secure: bool = Field(default=False)
-    cookie_samesite: str = Field(default="lax")
+    cookie_secure: bool = Field(default=True)
+    cookie_samesite: str = Field(default="none")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
