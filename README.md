@@ -72,6 +72,8 @@ For production across Vercel and Railway, set:
 - `FRONTEND_ORIGIN=https://your-vercel-domain.vercel.app`
 - `NEXT_PUBLIC_API_URL=https://your-railway-api-domain.up.railway.app`
 
+Railway may provide `DATABASE_URL` as `postgresql://...` or `postgres://...`; the backend normalizes both to the installed `psycopg` driver.
+
 ## Commands
 
 Backend:

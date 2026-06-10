@@ -20,3 +20,11 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def normalize_database_url(database_url: str) -> str:
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    if database_url.startswith("postgres://"):
+        return database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    return database_url
