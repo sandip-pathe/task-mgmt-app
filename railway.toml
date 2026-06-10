@@ -1,5 +1,5 @@
 [build]
-builder = "NIXPACKS"
+builder = "RAILPACK"
 buildCommand = "if [ -d backend ]; then cd backend; fi; python -m pip install -e ."
 
 [deploy]
