@@ -1,6 +1,20 @@
 import type { AuthResponse, Task, TaskActivity, TaskListParams, TaskListResponse, TaskPayload } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const CONFIGURED_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+function apiUrl() {
+  if (typeof window !== "undefined") {
+    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    if (!isLocalhost && CONFIGURED_API_URL.includes("railway.app")) {
+      return "/api";
+    }
+    if (!isLocalhost && !CONFIGURED_API_URL) {
+      return "/api";
+    }
+  }
+
+  return CONFIGURED_API_URL || "http://localhost:8000";
+}
 
 type ApiErrorBody = {
   error?: {
@@ -29,7 +43,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${apiUrl()}${path}`, {
     ...init,
     credentials: "include",
     headers,
