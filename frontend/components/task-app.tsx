@@ -7,6 +7,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Loader2,
   LogOut,
   Moon,
@@ -16,11 +17,21 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { DayPicker } from "react-day-picker";
 import { toast } from "sonner";
 
 import { api, ApiError } from "@/lib/api";
+import {
+  combineDateAndTime,
+  dateFromLocalInput,
+  defaultDueDateInput,
+  formatDateTime,
+  timeFromLocalInput,
+  toApiDate,
+  toDateInput,
+} from "@/lib/date-time";
 import type {
   AuthResponse,
   SortOrder,
@@ -46,6 +57,7 @@ import {
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 
 const statusLabels: Record<TaskStatus | "all", string> = {
@@ -74,21 +86,6 @@ function formatDate(value: string | null) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
-}
-
-function toDateInput(value: string | null) {
-  if (!value) return "";
-  if (!/(Z|[+-]\d{2}:\d{2})$/.test(value)) {
-    return value.slice(0, 16);
-  }
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function toApiDate(value?: string) {
-  return value ? new Date(value).toISOString() : null;
 }
 
 function errorMessage(error: unknown) {
@@ -282,10 +279,15 @@ function AuthScreen({
   onModeChange: (mode: "login" | "signup") => void;
   onAuthed: (data: AuthResponse) => void;
 }) {
+  const { setTheme } = useTheme();
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
     defaultValues: { email: "", password: "" },
   });
+
+  useEffect(() => {
+    setTheme("system");
+  }, [setTheme]);
 
   const mutation = useMutation({
     mutationFn: (values: AuthFormValues) =>
@@ -299,9 +301,6 @@ function AuthScreen({
 
   return (
     <main className="relative grid min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50 lg:grid-cols-[1fr_460px]">
-      <div className="absolute right-4 top-4 z-10">
-        <ThemeToggle />
-      </div>
       <section className="flex min-h-[38vh] flex-col justify-between bg-emerald-700 px-6 py-8 text-white dark:bg-emerald-900 lg:min-h-screen lg:px-10">
         <div className="text-sm font-semibold">Rival Task Manager</div>
         <div className="max-w-2xl">
@@ -578,7 +577,7 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
       description: task?.description ?? "",
       status: task?.status ?? "todo",
       priority: task?.priority ?? "medium",
-      due_date: toDateInput(task?.due_date ?? null),
+      due_date: task ? toDateInput(task.due_date) : defaultDueDateInput(),
     }),
     [task],
   );
@@ -588,6 +587,7 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
   });
   const watchedStatus = useWatch({ control: form.control, name: "status" });
   const watchedPriority = useWatch({ control: form.control, name: "priority" });
+  const watchedDueDate = useWatch({ control: form.control, name: "due_date" });
 
   const mutation = useMutation({
     mutationFn: (values: TaskFormValues) => {
@@ -660,10 +660,11 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
             { value: "high", label: "High" },
           ]}
         />
-        <FieldError message={form.formState.errors.due_date?.message}>
-          <Label htmlFor="due-date">Due date</Label>
-          <Input id="due-date" type="datetime-local" {...form.register("due_date")} />
-        </FieldError>
+        <DateTimePickerField
+          value={watchedDueDate ?? initialValues.due_date ?? defaultDueDateInput()}
+          error={form.formState.errors.due_date?.message}
+          onChange={(value) => form.setValue("due_date", value, { shouldDirty: true })}
+        />
       </div>
 
       <Button className="justify-self-end" disabled={mutation.isPending}>
@@ -671,6 +672,79 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
         {task ? "Save changes" : "Create task"}
       </Button>
     </form>
+  );
+}
+
+function DateTimePickerField({
+  value,
+  error,
+  onChange,
+}: {
+  value: string;
+  error?: string;
+  onChange: (value: string) => void;
+}) {
+  const selectedDate = dateFromLocalInput(value);
+  const selectedTime = timeFromLocalInput(value);
+
+  return (
+    <FieldError message={error}>
+      <Label htmlFor="due-date-picker">Due date</Label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id="due-date-picker"
+            type="button"
+            variant="outline"
+            className="w-full justify-start px-3 text-left font-normal"
+          >
+            <CalendarDays />
+            <span className="truncate">{formatDateTime(value)}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[min(calc(100vw-2rem),22rem)]">
+          <DayPicker
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => {
+              if (date) onChange(combineDateAndTime(date, selectedTime));
+            }}
+            classNames={{
+              root: "w-full",
+              month_caption: "mb-2 flex h-8 items-center justify-center text-sm font-semibold",
+              nav: "absolute right-4 top-4 flex gap-1",
+              button_previous:
+                "grid size-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900",
+              button_next:
+                "grid size-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900",
+              weekdays: "grid grid-cols-7 text-xs text-slate-500",
+              weekday: "grid h-8 place-items-center",
+              week: "grid grid-cols-7",
+              day: "grid size-9 place-items-center rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-900",
+              selected:
+                "bg-emerald-600 text-white hover:bg-emerald-600 dark:bg-emerald-500 dark:text-slate-950",
+              today: "font-semibold text-emerald-700 dark:text-emerald-300",
+              outside: "text-slate-300 dark:text-slate-700",
+            }}
+          />
+          <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
+            <Label htmlFor="due-time" className="mb-2 flex items-center gap-2">
+              <Clock className="size-4" />
+              Time
+            </Label>
+            <Input
+              id="due-time"
+              type="time"
+              value={selectedTime}
+              onChange={(event) => {
+                const baseDate = selectedDate ?? dateFromLocalInput(defaultDueDateInput());
+                if (baseDate) onChange(combineDateAndTime(baseDate, event.target.value));
+              }}
+            />
+          </div>
+        </PopoverContent>
+      </Popover>
+    </FieldError>
   );
 }
 
