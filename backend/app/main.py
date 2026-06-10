@@ -13,7 +13,8 @@ app = FastAPI(title="Rival Task Manager API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(settings.frontend_origin)],
+    allow_origins=settings.allowed_origins(),
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

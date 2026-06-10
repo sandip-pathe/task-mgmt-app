@@ -38,6 +38,20 @@ def test_signup_login_and_me_roundtrip(client: TestClient) -> None:
     assert me_response.json()["user"]["email"] == "ada@example.com"
 
 
+def test_unauthorized_session_check_includes_production_cors_header(
+    client: TestClient,
+) -> None:
+    response = client.get(
+        "/auth/me",
+        headers={"Origin": "https://task-mgmt-app.vercel.app"},
+    )
+
+    assert response.status_code == 401
+    assert response.headers["access-control-allow-origin"] == (
+        "https://task-mgmt-app.vercel.app"
+    )
+
+
 def test_task_routes_are_protected_and_user_scoped(client: TestClient) -> None:
     protected_response = client.get("/tasks")
     assert protected_response.status_code == 401

@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import AnyHttpUrl, Field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,11 +10,19 @@ class Settings(BaseSettings):
     )
     jwt_secret: str = Field(default="dev-only-change-me-with-at-least-32-bytes")
     jwt_expires_minutes: int = Field(default=60 * 24 * 7)
-    frontend_origin: AnyHttpUrl | str = Field(default="http://localhost:3000")
+    frontend_origin: str = Field(default="http://localhost:3000")
+    cors_origins: str = Field(
+        default="http://localhost:3000,https://task-mgmt-app.vercel.app"
+    )
     cookie_secure: bool = Field(default=False)
     cookie_samesite: str = Field(default="lax")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    def allowed_origins(self) -> list[str]:
+        origins = [self.frontend_origin]
+        origins.extend(origin.strip() for origin in self.cors_origins.split(",") if origin.strip())
+        return list(dict.fromkeys(origins))
 
 
 @lru_cache
