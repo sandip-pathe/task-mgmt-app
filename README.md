@@ -132,8 +132,11 @@ Errors use a consistent shape:
 
 1. Create a Railway project with a PostgreSQL database.
 2. Add the backend service from this repository.
-3. Set the environment variables from `.env.example`.
-4. Keep `railway.toml` at the repo root; it installs the backend, runs migrations, and starts Uvicorn.
+3. In the service settings, set the root directory to `backend`.
+4. Set the environment variables from `.env.example`.
+5. Keep `backend/railway.toml`; it runs migrations and starts Uvicorn.
+
+If deploying from the repository root instead, Railway may not auto-detect Python because the Python `pyproject.toml` lives in `backend/`. The repo-root `railway.toml` uses `python3` commands as a fallback, but the recommended Railway setup is root directory `backend`.
 
 ### Vercel Frontend
 
