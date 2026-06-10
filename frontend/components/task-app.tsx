@@ -78,6 +78,9 @@ function formatDate(value: string | null) {
 
 function toDateInput(value: string | null) {
   if (!value) return "";
+  if (!/(Z|[+-]\d{2}:\d{2})$/.test(value)) {
+    return value.slice(0, 16);
+  }
   const date = new Date(value);
   const offset = date.getTimezoneOffset();
   const local = new Date(date.getTime() - offset * 60_000);
@@ -563,15 +566,19 @@ function TaskDialog({
 
 function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void }) {
   const queryClient = useQueryClient();
-  const form = useForm<TaskFormValues>({
-    resolver: zodResolver(taskSchema),
-    defaultValues: {
+  const initialValues = useMemo<TaskFormValues>(
+    () => ({
       title: task?.title ?? "",
       description: task?.description ?? "",
       status: task?.status ?? "todo",
       priority: task?.priority ?? "medium",
       due_date: toDateInput(task?.due_date ?? null),
-    },
+    }),
+    [task],
+  );
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: initialValues,
   });
   const watchedStatus = useWatch({ control: form.control, name: "status" });
   const watchedPriority = useWatch({ control: form.control, name: "priority" });
@@ -585,7 +592,25 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
         priority: values.priority,
         due_date: toApiDate(values.due_date),
       };
-      return task ? api.updateTask(task.id, payload) : api.createTask(payload);
+      if (!task) return api.createTask(payload);
+
+      const updatePayload: Partial<TaskPayload> = {};
+      if (values.title !== initialValues.title) updatePayload.title = payload.title;
+      if ((values.description ?? "") !== (initialValues.description ?? "")) {
+        updatePayload.description = payload.description;
+      }
+      if (values.status !== initialValues.status) updatePayload.status = payload.status;
+      if (values.priority !== initialValues.priority) updatePayload.priority = payload.priority;
+      if ((values.due_date ?? "") !== (initialValues.due_date ?? "")) {
+        updatePayload.due_date = payload.due_date;
+      }
+
+      if (Object.keys(updatePayload).length === 0) {
+        toast.message("No changes to save");
+        return Promise.resolve(task);
+      }
+
+      return api.updateTask(task.id, updatePayload);
     },
     onSuccess: () => {
       toast.success(task ? "Task updated" : "Task created");

@@ -22,4 +22,5 @@ frontend/.env*
 frontend/.vercel/
 
 *.log
+*.db
 *.tsbuildinfo
