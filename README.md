@@ -158,11 +158,30 @@ The frontend has validation coverage for:
 - Task title validation
 - Due date validation
 
+## CI Pipeline
+
+GitHub Actions is configured in `.github/workflows/ci.yml` and runs on every push and pull request.
+
+Backend job:
+
+- Starts a PostgreSQL 16 service
+- Installs the FastAPI backend
+- Runs `ruff`
+- Runs Alembic migrations against PostgreSQL
+- Runs `pytest`
+
+Frontend job:
+
+- Installs dependencies with `npm ci`
+- Runs ESLint
+- Runs Vitest
+- Builds the Next.js app
+
 ## Assumptions And Trade-Offs
 
 - FastAPI was chosen over Go because the implementer is stronger in Python and TypeScript.
 - JWT is stored in an HTTP-only cookie for better production posture than localStorage.
-- Backend tests use an isolated SQLite database for speed; production and local app persistence use PostgreSQL.
+- Backend tests use an isolated SQLite database for speed, while CI verifies Alembic migrations against PostgreSQL and production/local persistence uses PostgreSQL.
 - Docker is skipped because it is not installed in this environment.
 - Admin role, realtime updates, and attachments are skipped to keep the assessment focused.
 - Activity history is persisted and displayed, but it is not delivered live over WebSockets or SSE.
