@@ -52,6 +52,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("task_id", sa.String(length=36), nullable=False),
         sa.Column("user_id", sa.String(length=36), nullable=False),
+        sa.Column("event_index", sa.Integer(), nullable=False),
         sa.Column("action", sa.String(length=32), nullable=False),
         sa.Column("summary", sa.String(length=255), nullable=False),
         sa.Column("changes", sa.JSON(), nullable=True),

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="postgresql+psycopg://postgres:postgres@localhost:5432/rival_tasks"
     )
-    jwt_secret: str = Field(default="dev-only-change-me")
+    jwt_secret: str = Field(default="dev-only-change-me-with-at-least-32-bytes")
     jwt_expires_minutes: int = Field(default=60 * 24 * 7)
     frontend_origin: AnyHttpUrl | str = Field(default="http://localhost:3000")
     cookie_secure: bool = Field(default=False)

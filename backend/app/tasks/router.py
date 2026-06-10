@@ -191,6 +191,6 @@ def task_activity(
         db.scalars(
             select(TaskActivity)
             .where(TaskActivity.task_id == task_id, TaskActivity.user_id == current_user.id)
-            .order_by(TaskActivity.created_at.desc())
+            .order_by(TaskActivity.event_index.desc())
         ).all()
     )
