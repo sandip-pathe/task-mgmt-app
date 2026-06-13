@@ -6,8 +6,16 @@ export const authSchema = z.object({
 });
 
 export const taskSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(160),
-  description: z.string().max(5000).optional(),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required")
+    .max(160)
+    .regex(/^[a-zA-Z0-9\s]+$/, "title cannot contain special characters"),
+  description: z
+    .string()
+    .max(5000)
+    .min(10, "description must be at least 10 characters"),
   status: z.enum(["todo", "in_progress", "completed"]),
   priority: z.enum(["low", "medium", "high"]),
   due_date: z

@@ -44,7 +44,12 @@ import type {
   TaskStatus,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { authSchema, type AuthFormValues, taskSchema, type TaskFormValues } from "@/lib/validation";
+import {
+  authSchema,
+  type AuthFormValues,
+  taskSchema,
+  type TaskFormValues,
+} from "@/lib/validation";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -168,7 +173,9 @@ export function TaskApp() {
             <h1 className="mt-1 text-2xl font-semibold tracking-normal sm:text-3xl">
               Tasks that stay accountable
             </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {user.email}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -208,7 +215,10 @@ export function TaskApp() {
                 setSort(value as TaskSort);
                 setPage(1);
               }}
-              options={Object.entries(sortLabels).map(([value, label]) => ({ value, label }))}
+              options={Object.entries(sortLabels).map(([value, label]) => ({
+                value,
+                label,
+              }))}
             />
             <SelectField
               label="Order"
@@ -291,7 +301,9 @@ function AuthScreen({
 
   const mutation = useMutation({
     mutationFn: (values: AuthFormValues) =>
-      mode === "login" ? api.login(values.email, values.password) : api.signup(values.email, values.password),
+      mode === "login"
+        ? api.login(values.email, values.password)
+        : api.signup(values.email, values.password),
     onSuccess: (data) => {
       onAuthed(data);
       toast.success(mode === "login" ? "Welcome back" : "Account created");
@@ -308,7 +320,8 @@ function AuthScreen({
             Own the work from idea to shipped.
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-emerald-50">
-            A focused task workspace with scoped accounts, searchable lists, and visible change history.
+            A focused task workspace with scoped accounts, searchable lists, and
+            visible change history.
           </p>
         </div>
       </section>
@@ -323,13 +336,20 @@ function AuthScreen({
               {mode === "login" ? "Sign in" : "Create account"}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {mode === "login" ? "Continue to your tasks." : "Start with a clean workspace."}
+              {mode === "login"
+                ? "Continue to your tasks."
+                : "Start with a clean workspace."}
             </p>
           </div>
 
           <FieldError message={form.formState.errors.email?.message}>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              {...form.register("email")}
+            />
           </FieldError>
 
           <FieldError message={form.formState.errors.password?.message}>
@@ -337,7 +357,9 @@ function AuthScreen({
             <Input
               id="password"
               type="password"
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
               {...form.register("password")}
             />
           </FieldError>
@@ -369,21 +391,23 @@ function StatusTabs({
 }) {
   return (
     <div className="flex w-full gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-950">
-      {(Object.keys(statusLabels) as Array<TaskStatus | "all">).map((status) => (
-        <button
-          key={status}
-          type="button"
-          onClick={() => onChange(status)}
-          className={cn(
-            "h-9 min-w-24 rounded-md px-3 text-sm font-medium transition-colors",
-            value === status
-              ? "bg-slate-950 text-white dark:bg-slate-100 dark:text-slate-950"
-              : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900",
-          )}
-        >
-          {statusLabels[status]}
-        </button>
-      ))}
+      {(Object.keys(statusLabels) as Array<TaskStatus | "all">).map(
+        (status) => (
+          <button
+            key={status}
+            type="button"
+            onClick={() => onChange(status)}
+            className={cn(
+              "h-9 min-w-24 rounded-md px-3 text-sm font-medium transition-colors",
+              value === status
+                ? "bg-slate-950 text-white dark:bg-slate-100 dark:text-slate-950"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900",
+            )}
+          >
+            {statusLabels[status]}
+          </button>
+        ),
+      )}
     </div>
   );
 }
@@ -444,14 +468,22 @@ function TaskList({
   );
 }
 
-function TaskCard({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }) {
+function TaskCard({
+  task,
+  onEdit,
+}: {
+  task: Task;
+  onEdit: (task: Task) => void;
+}) {
   const queryClient = useQueryClient();
 
   const completeMutation = useMutation({
     mutationFn: () => api.updateTask(task.id, { status: "completed" }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      const snapshots = queryClient.getQueriesData<TaskListResponse>({ queryKey: ["tasks"] });
+      const snapshots = queryClient.getQueriesData<TaskListResponse>({
+        queryKey: ["tasks"],
+      });
       snapshots.forEach(([key, data]) => {
         if (!data) return;
         queryClient.setQueryData<TaskListResponse>(key, {
@@ -464,7 +496,9 @@ function TaskCard({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }
       return { snapshots };
     },
     onError: (error, _variables, context) => {
-      context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      context?.snapshots.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
       toast.error(errorMessage(error));
     },
     onSuccess: () => toast.success("Task completed"),
@@ -475,7 +509,9 @@ function TaskCard({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }
     mutationFn: () => api.deleteTask(task.id),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      const snapshots = queryClient.getQueriesData<TaskListResponse>({ queryKey: ["tasks"] });
+      const snapshots = queryClient.getQueriesData<TaskListResponse>({
+        queryKey: ["tasks"],
+      });
       snapshots.forEach(([key, data]) => {
         if (!data) return;
         queryClient.setQueryData<TaskListResponse>(key, {
@@ -487,7 +523,9 @@ function TaskCard({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }
       return { snapshots };
     },
     onError: (error, _variables, context) => {
-      context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      context?.snapshots.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
       toast.error(errorMessage(error));
     },
     onSuccess: () => toast.success("Task deleted"),
@@ -498,8 +536,12 @@ function TaskCard({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }
     <article className="flex min-h-56 flex-col justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
       <button type="button" className="text-left" onClick={() => onEdit(task)}>
         <div className="flex flex-wrap gap-2">
-          <Badge tone={statusTone(task.status)}>{statusLabels[task.status]}</Badge>
-          <Badge tone={priorityTone(task.priority)}>{priorityLabels[task.priority]}</Badge>
+          <Badge tone={statusTone(task.status)}>
+            {statusLabels[task.status]}
+          </Badge>
+          <Badge tone={priorityTone(task.priority)}>
+            {priorityLabels[task.priority]}
+          </Badge>
         </div>
         <h2 className="mt-3 line-clamp-2 text-lg font-semibold text-slate-950 dark:text-slate-50">
           {task.title}
@@ -553,9 +595,13 @@ function TaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "New task" : "Edit task"}</DialogTitle>
+          <DialogTitle>
+            {mode === "create" ? "New task" : "Edit task"}
+          </DialogTitle>
           <DialogDescription>
-            {mode === "create" ? "Create a task with priority and due date." : "Update task details and review recent changes."}
+            {mode === "create"
+              ? "Create a task with priority and due date."
+              : "Update task details and review recent changes."}
           </DialogDescription>
         </DialogHeader>
         <TaskForm
@@ -569,7 +615,13 @@ function TaskDialog({
   );
 }
 
-function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void }) {
+function TaskForm({
+  task,
+  onSaved,
+}: {
+  task: Task | null;
+  onSaved: () => void;
+}) {
   const queryClient = useQueryClient();
   const initialValues = useMemo<TaskFormValues>(
     () => ({
@@ -584,6 +636,8 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: initialValues,
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
   const watchedStatus = useWatch({ control: form.control, name: "status" });
   const watchedPriority = useWatch({ control: form.control, name: "priority" });
@@ -601,12 +655,15 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
       if (!task) return api.createTask(payload);
 
       const updatePayload: Partial<TaskPayload> = {};
-      if (values.title !== initialValues.title) updatePayload.title = payload.title;
+      if (values.title !== initialValues.title)
+        updatePayload.title = payload.title;
       if ((values.description ?? "") !== (initialValues.description ?? "")) {
         updatePayload.description = payload.description;
       }
-      if (values.status !== initialValues.status) updatePayload.status = payload.status;
-      if (values.priority !== initialValues.priority) updatePayload.priority = payload.priority;
+      if (values.status !== initialValues.status)
+        updatePayload.status = payload.status;
+      if (values.priority !== initialValues.priority)
+        updatePayload.priority = payload.priority;
       if ((values.due_date ?? "") !== (initialValues.due_date ?? "")) {
         updatePayload.due_date = payload.due_date;
       }
@@ -621,29 +678,51 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
     onSuccess: () => {
       toast.success(task ? "Task updated" : "Task created");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      if (task) queryClient.invalidateQueries({ queryKey: ["activity", task.id] });
+      if (task)
+        queryClient.invalidateQueries({ queryKey: ["activity", task.id] });
       onSaved();
     },
     onError: (error) => toast.error(errorMessage(error)),
   });
 
   return (
-    <form className="grid gap-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+    <form
+      className="grid gap-4"
+      onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+    >
       <FieldError message={form.formState.errors.title?.message}>
         <Label htmlFor="title">Title</Label>
-        <Input id="title" {...form.register("title")} />
+        <Input
+          id="title"
+          {...form.register("title")}
+          aria-invalid={Boolean(form.formState.errors.title)}
+          className={cn(
+            form.formState.errors.title &&
+              "border-rose-500 focus-visible:ring-rose-500 dark:border-rose-500",
+          )}
+        />
       </FieldError>
 
       <FieldError message={form.formState.errors.description?.message}>
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" {...form.register("description")} />
+        <Textarea
+          id="description"
+          {...form.register("description")}
+          aria-invalid={Boolean(form.formState.errors.description)}
+          className={cn(
+            form.formState.errors.description &&
+              "border-rose-500 focus-visible:ring-rose-500 dark:border-rose-500",
+          )}
+        />
       </FieldError>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <SelectField
           label="Status"
           value={watchedStatus}
-          onChange={(value) => form.setValue("status", value as TaskStatus, { shouldDirty: true })}
+          onChange={(value) =>
+            form.setValue("status", value as TaskStatus, { shouldDirty: true })
+          }
           options={[
             { value: "todo", label: "Todo" },
             { value: "in_progress", label: "In progress" },
@@ -653,7 +732,11 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
         <SelectField
           label="Priority"
           value={watchedPriority}
-          onChange={(value) => form.setValue("priority", value as TaskPriority, { shouldDirty: true })}
+          onChange={(value) =>
+            form.setValue("priority", value as TaskPriority, {
+              shouldDirty: true,
+            })
+          }
           options={[
             { value: "low", label: "Low" },
             { value: "medium", label: "Medium" },
@@ -661,9 +744,13 @@ function TaskForm({ task, onSaved }: { task: Task | null; onSaved: () => void })
           ]}
         />
         <DateTimePickerField
-          value={watchedDueDate ?? initialValues.due_date ?? defaultDueDateInput()}
+          value={
+            watchedDueDate ?? initialValues.due_date ?? defaultDueDateInput()
+          }
           error={form.formState.errors.due_date?.message}
-          onChange={(value) => form.setValue("due_date", value, { shouldDirty: true })}
+          onChange={(value) =>
+            form.setValue("due_date", value, { shouldDirty: true })
+          }
         />
       </div>
 
@@ -711,7 +798,8 @@ function DateTimePickerField({
             }}
             classNames={{
               root: "w-full",
-              month_caption: "mb-2 flex h-8 items-center justify-center text-sm font-semibold",
+              month_caption:
+                "mb-2 flex h-8 items-center justify-center text-sm font-semibold",
               nav: "absolute right-4 top-4 flex gap-1",
               button_previous:
                 "grid size-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900",
@@ -737,8 +825,10 @@ function DateTimePickerField({
               type="time"
               value={selectedTime}
               onChange={(event) => {
-                const baseDate = selectedDate ?? dateFromLocalInput(defaultDueDateInput());
-                if (baseDate) onChange(combineDateAndTime(baseDate, event.target.value));
+                const baseDate =
+                  selectedDate ?? dateFromLocalInput(defaultDueDateInput());
+                if (baseDate)
+                  onChange(combineDateAndTime(baseDate, event.target.value));
               }}
             />
           </div>
@@ -764,12 +854,17 @@ function ActivityPanel({ taskId }: { taskId: string }) {
         </div>
       )}
       {activityQuery.isError && (
-        <p className="mt-3 text-sm text-rose-600">{errorMessage(activityQuery.error)}</p>
+        <p className="mt-3 text-sm text-rose-600">
+          {errorMessage(activityQuery.error)}
+        </p>
       )}
       {activityQuery.data && (
         <ol className="mt-3 space-y-3">
           {activityQuery.data.map((activity) => (
-            <li key={activity.id} className="rounded-md bg-slate-50 p-3 dark:bg-slate-900">
+            <li
+              key={activity.id}
+              className="rounded-md bg-slate-50 p-3 dark:bg-slate-900"
+            >
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm font-medium">{activity.summary}</p>
                 <time className="shrink-0 text-xs text-slate-500">
@@ -871,7 +966,9 @@ function FieldError({
   return (
     <div className="space-y-2">
       {children}
-      {message && <p className="text-sm text-rose-600 dark:text-rose-400">{message}</p>}
+      {message && (
+        <p className="text-sm text-rose-600 dark:text-rose-400">{message}</p>
+      )}
     </div>
   );
 }
